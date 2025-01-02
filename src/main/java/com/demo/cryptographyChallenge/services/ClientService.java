@@ -3,6 +3,8 @@ package com.demo.cryptographyChallenge.services;
 import com.demo.cryptographyChallenge.entities.Client;
 import com.demo.cryptographyChallenge.repositories.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -36,10 +38,44 @@ public class ClientService {
                 clientDecrypted.setCreditCardToken(encryptionService.decrypt(clientDecrypted.getCreditCardToken()));
                 return clientDecrypted;
             }else{
-                throw new RuntimeException("Client not found");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
             }
         } catch (Exception e){
             throw new RuntimeException("Error finding client" + e.getMessage(), e);
+        }
+    }
+
+    public Client update(Long id, Client clientDetails){
+        try {
+            Optional<Client> clientOptional = clientRepository.findById(id);
+            if(clientOptional.isPresent()){
+                Client client = clientOptional.get();
+
+                if(clientDetails.getUserDocument() != null){
+                    clientDetails.setUserDocument(encryptionService.encrypt(clientDetails.getUserDocument()));
+                }
+
+                if(clientDetails.getCreditCardToken() != null){
+                    clientDetails.setCreditCardToken(encryptionService.encrypt(client.getCreditCardToken()));
+                }
+                return clientRepository.save(client);
+            } else{
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found with the id: " + id);
+            }
+        }catch (Exception e) {
+            throw new RuntimeException("Error updating the client: " + e.getMessage(), e);
+        }
+    }
+
+    public void delete(Long id){
+        try{
+            if (clientRepository.existsById(id)){
+                clientRepository.deleteById(id);
+            } else {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found with the id: " + id);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting the client" + e.getMessage(), e);
         }
     }
 }
