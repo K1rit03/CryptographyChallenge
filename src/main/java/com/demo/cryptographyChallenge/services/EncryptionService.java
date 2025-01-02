@@ -24,7 +24,7 @@ public class EncryptionService {
     }
 
     public String encrypt(String data) throws Exception {
-        a
+
         byte[] iv = new byte[IV_SIZE];
         new SecureRandom().nextBytes(iv);
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
